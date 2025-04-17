@@ -30,7 +30,7 @@ local function createESPUI(parent)
     espGui.Position = UDim2.new(0.5, -125, 0, 10) -- Centralizado no topo
     espGui.BackgroundColor3 = Color3.new(0, 0, 0) -- Preto
     espGui.BorderColor3 = Color3.new(1, 1, 1) -- Borda branca
-    espGui.BorderSizePixel = 2 -- Tamanho da borda
+    espGui.BorderSizePixel = 4 -- Tamanho maior da borda para destaque
     espGui.Visible = false -- Inicialmente escondida
     espGui.Parent = parent
 
@@ -77,7 +77,7 @@ local function createToggleUIImageButton(parent, espUI)
     toggleButton.Size = UDim2.new(0, 50, 0, 50) -- Tamanho
     toggleButton.Position = UDim2.new(0, 10, 0, 10) -- Topo esquerdo
     toggleButton.Image = "rbxassetid://5009915812" -- ID da imagem fornecida
-    toggleButton.BackgroundColor3 = Color3.new(0, 0, 0) -- Fundo preto
+    toggleButton.BackgroundColor3 = Color3.new(1, 1, 1) -- Fundo branco (para destacar imagem)
     toggleButton.BorderColor3 = Color3.new(1, 1, 1) -- Borda branca
     toggleButton.BorderSizePixel = 2
     toggleButton.Parent = parent
