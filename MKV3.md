@@ -31,9 +31,11 @@ local function createGUI()
     local button = Instance.new("TextButton")
     button.Size = UDim2.new(0, 200, 0, 50) -- Tamanho
     button.Position = UDim2.new(0.5, -100, 0, 10) -- Centralizado no topo
-    button.Text = "ESP-ATIVAR" -- Texto inicial do botão
+    button.Text = "ESP+" -- Texto inicial do botão
     button.BackgroundColor3 = Color3.new(0, 0, 0) -- Preto
     button.TextColor3 = Color3.new(1, 1, 1) -- Branco
+    button.BorderColor3 = Color3.new(1, 1, 1) -- Borda branca
+    button.BorderSizePixel = 2 -- Tamanho da borda
     button.Font = Enum.Font.SourceSansBold
     button.TextScaled = true -- Ajuste de texto
     button.Parent = screenGui
@@ -46,7 +48,7 @@ local function createGUI()
     -- Lógica do botão
     button.MouseButton1Click:Connect(function()
         espEnabled = not espEnabled
-        button.Text = espEnabled and "ESP-DESATIVAR" or "ESP-ATIVAR" -- Atualiza o texto
+        button.Text = espEnabled and "ESP-" or "ESP+" -- Atualiza o texto
         for _, player in pairs(players:GetPlayers()) do
             if player ~= localPlayer then
                 toggleESP(player, espEnabled)
