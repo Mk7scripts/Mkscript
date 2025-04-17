@@ -30,7 +30,7 @@ local function createESPUI(parent)
     espGui.Position = UDim2.new(0.5, -125, 0, 10) -- Centralizado no topo
     espGui.BackgroundColor3 = Color3.new(0, 0, 0) -- Preto
     espGui.BorderColor3 = Color3.new(1, 1, 1) -- Borda branca
-    espGui.BorderSizePixel = 4 -- Borda visível
+    espGui.BorderSizePixel = 2 -- Tamanho da borda
     espGui.Visible = false -- Inicialmente escondida
     espGui.Parent = parent
 
@@ -71,18 +71,26 @@ local function createESPUI(parent)
     return espGui
 end
 
--- Criar botão de imagem para mostrar/esconder UI-GUI
-local function createToggleUIImageButton(parent, espUI)
-    local toggleButton = Instance.new("ImageButton")
+-- Criar botão roxo para mostrar/esconder UI-GUI
+local function createToggleUIButton(parent, espUI)
+    local toggleButton = Instance.new("TextButton")
     toggleButton.Size = UDim2.new(0, 50, 0, 50) -- Tamanho
-    toggleButton.Position = UDim2.new(0, 10, 0, 10) -- Topo esquerdo
-    toggleButton.Image = "rbxassetid://5009915812" -- ID da imagem fornecida
-    toggleButton.BackgroundColor3 = Color3.new(1, 1, 1) -- Fundo branco (para destacar imagem)
+    toggleButton.Position = UDim2.new(0, 10, 0, 200) -- Logo abaixo do chat
+    toggleButton.Text = "*" -- Texto do botão
+    toggleButton.BackgroundColor3 = Color3.new(0.5, 0, 0.5) -- Roxo
+    toggleButton.TextColor3 = Color3.new(1, 1, 1) -- Branco
     toggleButton.BorderColor3 = Color3.new(1, 1, 1) -- Borda branca
     toggleButton.BorderSizePixel = 2
+    toggleButton.Font = Enum.Font.SourceSansBold
+    toggleButton.TextScaled = true -- Ajuste de texto
     toggleButton.Parent = parent
 
-    -- Lógica do botão de imagem para mostrar/esconder UI
+    -- Bordas arredondadas no botão
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 20)
+    corner.Parent = toggleButton
+
+    -- Lógica do botão roxo
     toggleButton.MouseButton1Click:Connect(function()
         uiVisible = not uiVisible
         espUI.Visible = uiVisible -- Mostra/esconde a UI-GUI
@@ -98,8 +106,8 @@ local function createGUI()
     -- Criar UI-GUI de ESP
     local espUI = createESPUI(screenGui)
 
-    -- Criar botão de imagem para mostrar/esconder UI-GUI
-    createToggleUIImageButton(screenGui, espUI)
+    -- Criar botão roxo para mostrar/esconder UI-GUI
+    createToggleUIButton(screenGui, espUI)
 end
 
 -- Atualizar ESP para novos jogadores
