@@ -31,7 +31,7 @@ local function createGUI()
     -- Função para criar botões arredondados
     local function createButton(parent, text, position, callback)
         local button = Instance.new("TextButton", parent)
-        button.Size = UDim2.new(0, 150, 0, 50) -- Tamanho
+        button.Size = UDim2.new(0, 200, 0, 50) -- Tamanho maior para centralização
         button.Position = position -- Posição na tela
         button.Text = text -- Texto inicial do botão
         button.BackgroundColor3 = Color3.new(0, 0, 0) -- Preto
@@ -40,25 +40,22 @@ local function createGUI()
         button.TextColor3 = Color3.new(1, 1, 1) -- Texto branco
         button.Font = Enum.Font.SourceSansBold
         button.TextScaled = true -- Ajusta o texto ao tamanho do botão
-        
+
         -- Tornando o botão arredondado
         local corner = Instance.new("UICorner", button)
         corner.CornerRadius = UDim.new(0, 20) -- Define o arredondamento
-        
+
         button.MouseButton1Click:Connect(callback)
         return button
     end
 
     -- Botão ESP
-    local espButton = createButton(screenGui, "Ativar ESP", UDim2.new(0.1, 0, 0.1, 0), function()
-        -- Certificar-se de que o botão está completamente criado antes de alterar o texto
-        if espButton:IsA("TextButton") then
-            espEnabled = not espEnabled
-            espButton.Text = espEnabled and "Desativar ESP" or "Ativar ESP" -- Atualiza o texto do botão
-            for _, player in pairs(players:GetPlayers()) do
-                if player ~= localPlayer then
-                    toggleESP(player, espEnabled)
-                end
+    local espButton = createButton(screenGui, "Ativar ESP", UDim2.new(0.5, -100, 0.05, 0), function() -- Centralizado
+        espEnabled = not espEnabled
+        espButton.Text = espEnabled and "Desativar ESP" or "Ativar ESP" -- Atualiza o texto do botão
+        for _, player in pairs(players:GetPlayers()) do
+            if player ~= localPlayer then
+                toggleESP(player, espEnabled)
             end
         end
     end)
