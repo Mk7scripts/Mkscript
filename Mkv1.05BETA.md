@@ -3,21 +3,20 @@ local espEnabled = false
 local players = game:GetService("Players")
 local localPlayer = players.LocalPlayer
 
--- Função para criar ESP (caixa branca ao redor dos jogadores, visível através das paredes)
+-- Função para criar ESP (borda vermelha ao redor dos jogadores)
 local function toggleESP(player, enable)
     if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-        local adornment = player.Character:FindFirstChild("ESPBox")
-        if enable and not adornment then
-            local box = Instance.new("BoxHandleAdornment")
-            box.Name = "ESPBox"
-            box.Adornee = player.Character.HumanoidRootPart -- Focado na HumanoidRootPart
-            box.Size = Vector3.new(4, 6, 4)
-            box.Color3 = Color3.new(1, 1, 1) -- Branco
-            box.Transparency = 0.5
-            box.AlwaysOnTop = true -- Garante visibilidade através das paredes
-            box.Parent = player.Character.HumanoidRootPart
-        elseif not enable and adornment then
-            adornment:Destroy()
+        local highlight = player.Character:FindFirstChild("ESPHighlight")
+        if enable and not highlight then
+            local newHighlight = Instance.new("Highlight")
+            newHighlight.Name = "ESPHighlight"
+            newHighlight.Adornee = player.Character -- Aplica ao personagem inteiro
+            newHighlight.FillTransparency = 1 -- Deixa a parte interna transparente
+            newHighlight.OutlineColor = Color3.new(1, 0, 0) -- Borda vermelha
+            newHighlight.OutlineTransparency = 0 -- Totalmente visível
+            newHighlight.Parent = player.Character
+        elseif not enable and highlight then
+            highlight:Destroy()
         end
     end
 end
@@ -26,7 +25,7 @@ end
 local function createGUI()
     local screenGui = Instance.new("ScreenGui")
     screenGui.Name = "ESP_GUI"
-    screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+    screenGui.Parent = localPlayer:WaitForChild("PlayerGui")
 
     -- Função para criar botões arredondados
     local function createButton(parent, text, position, callback)
