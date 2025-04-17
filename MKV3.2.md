@@ -34,6 +34,11 @@ local function createESPUI(parent)
     espGui.Visible = false -- Inicialmente escondida
     espGui.Parent = parent
 
+    -- Bordas arredondadas na UI-GUI
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 20) -- Define o arredondamento
+    corner.Parent = espGui
+
     -- Botão para ativar/desativar ESP
     local button = Instance.new("TextButton")
     button.Size = UDim2.new(0, 200, 0, 50)
@@ -48,9 +53,9 @@ local function createESPUI(parent)
     button.Parent = espGui
 
     -- Bordas arredondadas no botão
-    local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, 20)
-    corner.Parent = button
+    local buttonCorner = Instance.new("UICorner")
+    buttonCorner.CornerRadius = UDim.new(0, 20)
+    buttonCorner.Parent = button
 
     -- Lógica do botão ESP
     button.MouseButton1Click:Connect(function()
@@ -70,10 +75,12 @@ end
 local function createToggleUIButton(parent, espUI)
     local toggleButton = Instance.new("TextButton")
     toggleButton.Size = UDim2.new(0, 50, 0, 50) -- Tamanho
-    toggleButton.Position = UDim2.new(0.5, -25, 0.9, -60) -- Centralizado no meio inferior
+    toggleButton.Position = UDim2.new(0, 10, 0, 10) -- Topo esquerdo
     toggleButton.Text = "*" -- Texto do botão
     toggleButton.BackgroundColor3 = Color3.new(0.5, 0, 0.5) -- Roxo
     toggleButton.TextColor3 = Color3.new(1, 1, 1) -- Branco
+    toggleButton.BorderColor3 = Color3.new(1, 1, 1) -- Borda branca
+    toggleButton.BorderSizePixel = 2
     toggleButton.Font = Enum.Font.SourceSansBold
     toggleButton.TextScaled = true -- Ajuste de texto
     toggleButton.Parent = parent
