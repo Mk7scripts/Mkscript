@@ -11,7 +11,7 @@ local function toggleESP(player, enable)
             local box = Instance.new("BoxHandleAdornment")
             box.Name = "ESPBox"
             box.Adornee = player.Character.HumanoidRootPart -- Focado na HumanoidRootPart
-            box.Size = Vector3.new(4, 6, 4)
+            box.Size = Vector3.new(4, 6, 4) -- Tamanho da caixa
             box.Color3 = Color3.new(1, 1, 1) -- Branco
             box.Transparency = 0.5
             box.AlwaysOnTop = true -- Garante visibilidade através das paredes
@@ -29,20 +29,19 @@ screenGui.Parent = localPlayer:WaitForChild("PlayerGui")
 -- Função para criar botões arredondados
 local function createButton(parent, text, position, callback)
     local button = Instance.new("TextButton", parent)
-    button.Size = UDim2.new(0, 150, 0, 50)
-    button.Position = position
-    button.Text = text
+    button.Size = UDim2.new(0, 150, 0, 50) -- Tamanho
+    button.Position = position -- Posição na tela
+    button.Text = text -- Texto inicial do botão
     button.BackgroundColor3 = Color3.new(0, 0, 0) -- Preto
     button.BorderColor3 = Color3.new(1, 1, 1) -- Branco
     button.BorderSizePixel = 2
-    button.TextColor3 = Color3.new(1, 1, 1)
+    button.TextColor3 = Color3.new(1, 1, 1) -- Texto branco
     button.Font = Enum.Font.SourceSansBold
-    button.TextScaled = true -- Texto ajustado automaticamente
-    button.AutoButtonColor = true
+    button.TextScaled = true -- Ajusta o texto ao tamanho do botão
     
     -- Tornando o botão arredondado
     local corner = Instance.new("UICorner", button)
-    corner.CornerRadius = UDim.new(0, 20)
+    corner.CornerRadius = UDim.new(0, 20) -- Define o arredondamento
     
     button.MouseButton1Click:Connect(callback)
     return button
@@ -59,7 +58,7 @@ local espButton = createButton(screenGui, "Ativar ESP", UDim2.new(0.1, 0, 0.1, 0
     end
 end)
 
--- Atualizar ESP para novos jogadores
+-- Atualizar ESP para novos jogadores e personagens
 players.PlayerAdded:Connect(function(player)
     player.CharacterAdded:Connect(function()
         toggleESP(player, espEnabled)
