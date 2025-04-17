@@ -90,10 +90,42 @@ local function createToggleUIButton(parent, espUI)
     corner.CornerRadius = UDim.new(0, 20)
     corner.Parent = toggleButton
 
-    -- Lógica do botão roxo
+    -- Função de arrastar o botão
+    local dragging = false
+    local dragStart, startPos
+
+    toggleButton.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true
+            dragStart = input.Position
+            startPos = toggleButton.Position
+        end
+    end)
+
+    toggleButton.InputChanged:Connect(function(input)
+        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+            local delta = input.Position - dragStart
+            toggleButton.Position = UDim2.new(
+                startPos.X.Scale,
+                startPos.X.Offset + delta.X,
+                startPos.Y.Scale,
+                startPos.Y.Offset + delta.Y
+            )
+        end
+    end)
+
+    toggleButton.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = false
+        end
+    end)
+
+    -- Lógica do botão roxo para mostrar/esconder UI
     toggleButton.MouseButton1Click:Connect(function()
-        uiVisible = not uiVisible
-        espUI.Visible = uiVisible -- Mostra/esconde a UI-GUI
+        if not dragging then
+            uiVisible = not uiVisible
+            espUI.Visible = uiVisible -- Mostra/esconde a UI-GUI
+        end
     end)
 end
 
