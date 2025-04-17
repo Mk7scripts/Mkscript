@@ -50,7 +50,10 @@ end
 -- Botão ESP
 local espButton = createButton(screenGui, "Ativar ESP", UDim2.new(0.1, 0, 0.1, 0), function()
     espEnabled = not espEnabled
-    espButton.Text = espEnabled and "Desativar ESP" or "Ativar ESP" -- Atualiza o texto do botão
+    -- Certifique-se de que o botão esteja criado antes de alterar o texto
+    if espButton then
+        espButton.Text = espEnabled and "Desativar ESP" or "Ativar ESP" -- Atualiza o texto do botão
+    end
     for _, player in pairs(players:GetPlayers()) do
         if player ~= localPlayer then
             toggleESP(player, espEnabled)
