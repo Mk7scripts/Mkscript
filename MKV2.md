@@ -11,9 +11,9 @@ local function toggleESP(player, enable)
             local newHighlight = Instance.new("Highlight")
             newHighlight.Name = "ESPHighlight"
             newHighlight.Adornee = player.Character -- Aplica ao personagem inteiro
-            newHighlight.FillTransparency = 1 -- Deixa a parte interna transparente
+            newHighlight.FillTransparency = 1 -- Parte interna transparente
             newHighlight.OutlineColor = Color3.new(1, 0, 0) -- Borda vermelha
-            newHighlight.OutlineTransparency = 0 -- Totalmente visível
+            newHighlight.OutlineTransparency = 0 -- Borda totalmente visível
             newHighlight.Parent = player.Character
         elseif not enable and highlight then
             highlight:Destroy()
@@ -50,13 +50,11 @@ local function createGUI()
 
     -- Criar botão ESP
     local espButton = createButton(screenGui, "Ativar ESP", UDim2.new(0.5, -100, 0.05, 0), function()
-        if espButton then -- Certifique-se de que o botão foi criado
-            espEnabled = not espEnabled
-            espButton.Text = espEnabled and "Desativar ESP" or "Ativar ESP" -- Atualiza o texto do botão
-            for _, player in pairs(players:GetPlayers()) do
-                if player ~= localPlayer then
-                    toggleESP(player, espEnabled)
-                end
+        espEnabled = not espEnabled
+        espButton.Text = espEnabled and "Desativar ESP" or "Ativar ESP" -- Atualiza o texto do botão
+        for _, player in pairs(players:GetPlayers()) do
+            if player ~= localPlayer then
+                toggleESP(player, espEnabled)
             end
         end
     end)
