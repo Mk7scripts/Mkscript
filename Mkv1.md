@@ -1,10 +1,9 @@
 -- Variáveis
 local espEnabled = false
-local fovEnabled = false
 local players = game:GetService("Players")
 local localPlayer = players.LocalPlayer
 
--- Função para criar ESP (caixa vermelha ao redor dos jogadores)
+-- Função para criar ESP (caixa branca ao redor dos jogadores)
 local function toggleESP(player, enable)
     if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
         local adornment = player.Character:FindFirstChild("ESPBox")
@@ -13,7 +12,7 @@ local function toggleESP(player, enable)
             box.Name = "ESPBox"
             box.Adornee = player.Character
             box.Size = Vector3.new(4, 6, 4) -- Tamanho da caixa
-            box.Color3 = Color3.new(1, 0, 0) -- Vermelho
+            box.Color3 = Color3.new(1, 1, 1) -- Branco
             box.Transparency = 0.5
             box.AlwaysOnTop = true
             box.Parent = player.Character
@@ -23,40 +22,22 @@ local function toggleESP(player, enable)
     end
 end
 
--- Função para criar FOV (linhas apontando para os jogadores)
-local function toggleFOV(player, enable)
-    if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-        local beam = player.Character:FindFirstChild("FOVLine")
-        if enable and not beam then
-            local newBeam = Instance.new("Beam")
-            newBeam.Name = "FOVLine"
-            newBeam.Attachment0 = Instance.new("Attachment", localPlayer.Character.HumanoidRootPart)
-            newBeam.Attachment1 = Instance.new("Attachment", player.Character.HumanoidRootPart)
-            newBeam.Color = ColorSequence.new(Color3.new(1, 1, 1)) -- Branco
-            newBeam.Width0 = 0.1
-            newBeam.Width1 = 0.1
-            newBeam.Transparency = NumberSequence.new(0.5)
-            newBeam.Parent = player.Character
-        elseif not enable and beam then
-            beam:Destroy()
-        end
-    end
-end
-
 -- GUI adaptada para celular
 local screenGui = Instance.new("ScreenGui")
 screenGui.Parent = localPlayer:WaitForChild("PlayerGui")
 
--- Função de design do botão
+-- Função para criar botões com design correto
 local function createButton(parent, text, position, callback)
     local button = Instance.new("TextButton", parent)
-    button.Size = UDim2.new(0, 120, 0, 50)
+    button.Size = UDim2.new(0, 150, 0, 50)
     button.Position = position
     button.Text = text
     button.BackgroundColor3 = Color3.new(0, 0, 0) -- Preto
     button.BorderColor3 = Color3.new(1, 1, 1) -- Branco
-    button.BorderSizePixel = 3
+    button.BorderSizePixel = 2
     button.TextColor3 = Color3.new(1, 1, 1)
+    button.Font = Enum.Font.SourceSansBold
+    button.TextScaled = true -- Texto se ajusta ao botão
     button.MouseButton1Click:Connect(callback)
     return button
 end
@@ -71,20 +52,9 @@ createButton(screenGui, "Ativar ESP", UDim2.new(0.1, 0, 0.1, 0), function()
     end
 end)
 
--- Botão FOV
-createButton(screenGui, "Ativar FOV", UDim2.new(0.1, 0, 0.2, 0), function()
-    fovEnabled = not fovEnabled
-    for _, player in pairs(players:GetPlayers()) do
-        if player ~= localPlayer then
-            toggleFOV(player, fovEnabled)
-        end
-    end
-end)
-
--- Atualizar ESP e FOV para novos jogadores
+-- Atualizar ESP para novos jogadores
 players.PlayerAdded:Connect(function(player)
     player.CharacterAdded:Connect(function()
         toggleESP(player, espEnabled)
-        toggleFOV(player, fovEnabled)
     end)
 end)
