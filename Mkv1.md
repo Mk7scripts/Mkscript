@@ -3,19 +3,19 @@ local espEnabled = false
 local players = game:GetService("Players")
 local localPlayer = players.LocalPlayer
 
--- Função para criar ESP (caixa branca ao redor dos jogadores)
+-- Função para criar ESP (caixa branca ao redor dos jogadores, visível através das paredes)
 local function toggleESP(player, enable)
     if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
         local adornment = player.Character:FindFirstChild("ESPBox")
         if enable and not adornment then
             local box = Instance.new("BoxHandleAdornment")
             box.Name = "ESPBox"
-            box.Adornee = player.Character
+            box.Adornee = player.Character.HumanoidRootPart -- Focado na HumanoidRootPart
             box.Size = Vector3.new(4, 6, 4)
             box.Color3 = Color3.new(1, 1, 1) -- Branco
             box.Transparency = 0.5
-            box.AlwaysOnTop = true
-            box.Parent = player.Character
+            box.AlwaysOnTop = true -- Garante visibilidade através das paredes
+            box.Parent = player.Character.HumanoidRootPart
         elseif not enable and adornment then
             adornment:Destroy()
         end
@@ -26,7 +26,7 @@ end
 local screenGui = Instance.new("ScreenGui")
 screenGui.Parent = localPlayer:WaitForChild("PlayerGui")
 
--- Função para criar botões com design arredondado
+-- Função para criar botões arredondados
 local function createButton(parent, text, position, callback)
     local button = Instance.new("TextButton", parent)
     button.Size = UDim2.new(0, 150, 0, 50)
@@ -35,14 +35,14 @@ local function createButton(parent, text, position, callback)
     button.BackgroundColor3 = Color3.new(0, 0, 0) -- Preto
     button.BorderColor3 = Color3.new(1, 1, 1) -- Branco
     button.BorderSizePixel = 2
-    button.TextColor3 = Color3.new(1, 1, 1) -- Texto Branco
+    button.TextColor3 = Color3.new(1, 1, 1)
     button.Font = Enum.Font.SourceSansBold
-    button.TextScaled = true -- Texto se ajusta ao tamanho do botão
+    button.TextScaled = true -- Texto ajustado automaticamente
     button.AutoButtonColor = true
     
     -- Tornando o botão arredondado
     local corner = Instance.new("UICorner", button)
-    corner.CornerRadius = UDim.new(0, 20) -- Ajusta o arredondamento
+    corner.CornerRadius = UDim.new(0, 20)
     
     button.MouseButton1Click:Connect(callback)
     return button
