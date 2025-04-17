@@ -14,7 +14,7 @@ local function toggleESP(player, enable)
             newHighlight.Adornee = player.Character
             newHighlight.FillTransparency = 1 -- Parte interna transparente
             newHighlight.OutlineColor = Color3.new(1, 1, 1) -- Borda branca
-            newHighlight.OutlineTransparency = 0 -- Borda totalmente visível
+            newHighlight.OutlineTransparency = 0 -- Totalmente visível
             newHighlight.Parent = player.Character
         elseif not enable and highlight then
             highlight:Destroy()
@@ -30,7 +30,7 @@ local function createESPUI(parent)
     espGui.Position = UDim2.new(0.5, -125, 0, 10) -- Centralizado no topo
     espGui.BackgroundColor3 = Color3.new(0, 0, 0) -- Preto
     espGui.BorderColor3 = Color3.new(1, 1, 1) -- Borda branca
-    espGui.BorderSizePixel = 4 -- Tamanho maior da borda para destaque
+    espGui.BorderSizePixel = 4 -- Borda visível
     espGui.Visible = false -- Inicialmente escondida
     espGui.Parent = parent
 
