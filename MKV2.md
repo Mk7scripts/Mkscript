@@ -3,17 +3,17 @@ local espEnabled = false
 local players = game:GetService("Players")
 local localPlayer = players.LocalPlayer
 
--- Função para criar ESP (borda vermelha ao redor dos jogadores)
+-- Função para ativar/desativar ESP
 local function toggleESP(player, enable)
     if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
         local highlight = player.Character:FindFirstChild("ESPHighlight")
         if enable and not highlight then
             local newHighlight = Instance.new("Highlight")
             newHighlight.Name = "ESPHighlight"
-            newHighlight.Adornee = player.Character -- Aplica ao personagem inteiro
-            newHighlight.FillTransparency = 1 -- Parte interna transparente
-            newHighlight.OutlineColor = Color3.new(1, 0, 0) -- Borda vermelha
-            newHighlight.OutlineTransparency = 0 -- Borda totalmente visível
+            newHighlight.Adornee = player.Character
+            newHighlight.FillTransparency = 1 -- Transparência total na parte interna
+            newHighlight.OutlineColor = Color3.new(1, 1, 1) -- Borda branca
+            newHighlight.OutlineTransparency = 0 -- Totalmente visível
             newHighlight.Parent = player.Character
         elseif not enable and highlight then
             highlight:Destroy()
@@ -21,37 +21,32 @@ local function toggleESP(player, enable)
     end
 end
 
--- GUI adaptada para celular
+-- Criar UI-GUI
 local function createGUI()
     local screenGui = Instance.new("ScreenGui")
     screenGui.Name = "ESP_GUI"
     screenGui.Parent = localPlayer:WaitForChild("PlayerGui")
 
-    -- Função para criar botão arredondado
-    local function createButton(parent, text, position, callback)
-        local button = Instance.new("TextButton", parent)
-        button.Size = UDim2.new(0, 200, 0, 50) -- Tamanho maior para centralização
-        button.Position = position -- Centralizado no topo
-        button.Text = text -- Texto inicial do botão
-        button.BackgroundColor3 = Color3.new(0, 0, 0) -- Preto
-        button.BorderColor3 = Color3.new(1, 1, 1) -- Branco
-        button.BorderSizePixel = 2
-        button.TextColor3 = Color3.new(1, 1, 1) -- Texto branco
-        button.Font = Enum.Font.SourceSansBold
-        button.TextScaled = true -- Ajusta o texto ao tamanho do botão
+    -- Criar botão
+    local button = Instance.new("TextButton")
+    button.Size = UDim2.new(0, 200, 0, 50) -- Tamanho
+    button.Position = UDim2.new(0.5, -100, 0, 10) -- Centralizado no topo
+    button.Text = "ESP-ATIVAR" -- Texto inicial do botão
+    button.BackgroundColor3 = Color3.new(0, 0, 0) -- Preto
+    button.TextColor3 = Color3.new(1, 1, 1) -- Branco
+    button.Font = Enum.Font.SourceSansBold
+    button.TextScaled = true -- Ajuste de texto
+    button.Parent = screenGui
 
-        -- Tornando o botão arredondado
-        local corner = Instance.new("UICorner", button)
-        corner.CornerRadius = UDim.new(0, 20) -- Define o arredondamento
+    -- Bordas arredondadas no botão
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 20)
+    corner.Parent = button
 
-        button.MouseButton1Click:Connect(callback)
-        return button
-    end
-
-    -- Criar botão ESP
-    local espButton = createButton(screenGui, "Ativar ESP", UDim2.new(0.5, -100, 0.05, 0), function()
+    -- Lógica do botão
+    button.MouseButton1Click:Connect(function()
         espEnabled = not espEnabled
-        espButton.Text = espEnabled and "Desativar ESP" or "Ativar ESP" -- Atualiza o texto do botão
+        button.Text = espEnabled and "ESP-DESATIVAR" or "ESP-ATIVAR" -- Atualiza o texto
         for _, player in pairs(players:GetPlayers()) do
             if player ~= localPlayer then
                 toggleESP(player, espEnabled)
@@ -60,24 +55,12 @@ local function createGUI()
     end)
 end
 
--- Criar GUI ao iniciar e recriá-la após morte
-local function ensureGUI()
-    if not localPlayer:FindFirstChild("PlayerGui"):FindFirstChild("ESP_GUI") then
-        createGUI()
-    end
-end
-
--- Atualizar ESP para novos jogadores e personagens
+-- Atualizar ESP para novos jogadores
 players.PlayerAdded:Connect(function(player)
     player.CharacterAdded:Connect(function()
         toggleESP(player, espEnabled)
     end)
 end)
 
--- Detectar morte do jogador e recriar GUI
-localPlayer.CharacterAdded:Connect(function()
-    ensureGUI() -- Certificar-se de que a GUI esteja recriada
-end)
-
--- Inicializar GUI ao iniciar o script
-ensureGUI()
+-- Garantir que GUI seja criada ao iniciar
+createGUI()
