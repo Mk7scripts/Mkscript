@@ -27,11 +27,11 @@ local function createGUI()
     screenGui.Name = "ESP_GUI"
     screenGui.Parent = localPlayer:WaitForChild("PlayerGui")
 
-    -- Função para criar botões arredondados
+    -- Função para criar botão arredondado
     local function createButton(parent, text, position, callback)
         local button = Instance.new("TextButton", parent)
         button.Size = UDim2.new(0, 200, 0, 50) -- Tamanho maior para centralização
-        button.Position = position -- Posição na tela
+        button.Position = position -- Centralizado no topo
         button.Text = text -- Texto inicial do botão
         button.BackgroundColor3 = Color3.new(0, 0, 0) -- Preto
         button.BorderColor3 = Color3.new(1, 1, 1) -- Branco
@@ -48,19 +48,21 @@ local function createGUI()
         return button
     end
 
-    -- Botão ESP
-    local espButton = createButton(screenGui, "Ativar ESP", UDim2.new(0.5, -100, 0.05, 0), function() -- Centralizado
-        espEnabled = not espEnabled
-        espButton.Text = espEnabled and "Desativar ESP" or "Ativar ESP" -- Atualiza o texto do botão
-        for _, player in pairs(players:GetPlayers()) do
-            if player ~= localPlayer then
-                toggleESP(player, espEnabled)
+    -- Criar botão ESP
+    local espButton = createButton(screenGui, "Ativar ESP", UDim2.new(0.5, -100, 0.05, 0), function()
+        if espButton then -- Certifique-se de que o botão foi criado
+            espEnabled = not espEnabled
+            espButton.Text = espEnabled and "Desativar ESP" or "Ativar ESP" -- Atualiza o texto do botão
+            for _, player in pairs(players:GetPlayers()) do
+                if player ~= localPlayer then
+                    toggleESP(player, espEnabled)
+                end
             end
         end
     end)
 end
 
--- Criar GUI ao iniciar e recriá-la após morrer
+-- Criar GUI ao iniciar e recriá-la após morte
 local function ensureGUI()
     if not localPlayer:FindFirstChild("PlayerGui"):FindFirstChild("ESP_GUI") then
         createGUI()
@@ -76,7 +78,7 @@ end)
 
 -- Detectar morte do jogador e recriar GUI
 localPlayer.CharacterAdded:Connect(function()
-    ensureGUI() -- Certificar-se de que a GUI esteja sempre recriada
+    ensureGUI() -- Certificar-se de que a GUI esteja recriada
 end)
 
 -- Inicializar GUI ao iniciar o script
