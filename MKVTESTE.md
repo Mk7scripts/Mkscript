@@ -1,121 +1,113 @@
--- Variáveis
-local espEnabled = false
-local uiVisible = false
-local players = game:GetService("Players")
-local localPlayer = players.LocalPlayer
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local LocalPlayer = Players.LocalPlayer
+local Camera = workspace.CurrentCamera
 
--- Função para ativar/desativar ESP
-local function toggleESP(player, enable)
-    if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-        local highlight = player.Character:FindFirstChild("ESPHighlight")
-        if enable and not highlight then
-            local newHighlight = Instance.new("Highlight")
-            newHighlight.Name = "ESPHighlight"
-            newHighlight.Adornee = player.Character
-            newHighlight.FillTransparency = 1 -- Parte interna transparente
-            newHighlight.OutlineColor = Color3.new(1, 1, 1) -- Borda branca
-            newHighlight.OutlineTransparency = 0 -- Totalmente visível
-            newHighlight.Parent = player.Character
-        elseif not enable and highlight then
-            highlight:Destroy()
+-- Configurações
+local AimlockEnabled = false
+local TeamCheck = true
+local FOV = 100
+local Smoothness = 0.2 -- 0 = instantâneo, 1 = muito lento
+
+-- Criar a GUI
+local ScreenGui = Instance.new("ScreenGui")
+local TextButton = Instance.new("TextButton")
+
+ScreenGui.Name = "AimlockUI"
+ScreenGui.Parent = game.CoreGui
+ScreenGui.ResetOnSpawn = false
+
+TextButton.Name = "AimlockButton"
+TextButton.Parent = ScreenGui
+TextButton.Size = UDim2.new(0, 100, 0, 50)
+TextButton.Position = UDim2.new(0.5, -50, 0.9, -25)
+TextButton.Text = "OFF"
+TextButton.TextScaled = true
+TextButton.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+TextButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+TextButton.Font = Enum.Font.GothamBold
+TextButton.ZIndex = 10
+
+-- Adaptar para mobile
+if UserInputService.TouchEnabled then
+    TextButton.Size = UDim2.new(0, 150, 0, 75)
+    TextButton.Position = UDim2.new(0.5, -75, 0.9, -37.5)
+    TextButton.TextSize = 28
+end
+
+-- Função para encontrar o jogador mais próximo
+local function GetClosestPlayer()
+    local closestPlayer = nil
+    local shortestDistance = FOV
+    
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character then
+            if TeamCheck and player.Team and LocalPlayer.Team and player.Team == LocalPlayer.Team then
+                continue
+            end
+            
+            local character = player.Character
+            local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+            
+            if humanoidRootPart then
+                local screenPoint = Camera:WorldToScreenPoint(humanoidRootPart.Position)
+                if screenPoint.Z > 0 then
+                    local viewportSize = Camera.ViewportSize
+                    local center = Vector2.new(viewportSize.X/2, viewportSize.Y/2)
+                    local distance = (center - Vector2.new(screenPoint.X, screenPoint.Y)).Magnitude
+                    
+                    if distance < shortestDistance then
+                        closestPlayer = player
+                        shortestDistance = distance
+                    end
+                end
+            end
+        end
+    end
+    
+    return closestPlayer
+end
+
+-- Função principal do Aimlock
+local function Aimlock()
+    if not AimlockEnabled or not LocalPlayer.Character then return end
+    
+    local target = GetClosestPlayer()
+    if target and target.Character then
+        local humanoidRootPart = target.Character:FindFirstChild("HumanoidRootPart")
+        if humanoidRootPart then
+            local newCFrame = CFrame.new(Camera.CFrame.Position, humanoidRootPart.Position)
+            Camera.CFrame = Camera.CFrame:Lerp(newCFrame, 1 - Smoothness)
         end
     end
 end
 
--- Criar UI-GUI para ESP
-local function createESPUI(parent)
-    local espGui = Instance.new("Frame")
-    espGui.Name = "ESP_UI"
-    espGui.Size = UDim2.new(0, 250, 0, 70) -- Tamanho
-    espGui.Position = UDim2.new(0.5, -125, 0, 10) -- Centralizado no topo
-    espGui.BackgroundColor3 = Color3.new(0, 0, 0) -- Preto
-    espGui.BorderColor3 = Color3.new(1, 1, 1) -- Borda branca
-    espGui.BorderSizePixel = 2 -- Tamanho da borda
-    espGui.Visible = false -- Inicialmente escondida
-    espGui.Parent = parent
-
-    -- Bordas arredondadas na UI-GUI
-    local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, 20) -- Define o arredondamento
-    corner.Parent = espGui
-
-    -- Botão para ativar/desativar ESP
-    local button = Instance.new("TextButton")
-    button.Size = UDim2.new(0, 200, 0, 50)
-    button.Position = UDim2.new(0.5, -100, 0.5, -25) -- Centralizado dentro da UI-GUI
-    button.Text = "ESP+" -- Texto inicial
-    button.BackgroundColor3 = Color3.new(0, 0, 0) -- Preto
-    button.TextColor3 = Color3.new(1, 1, 1) -- Branco
-    button.BorderColor3 = Color3.new(1, 1, 1) -- Borda branca
-    button.BorderSizePixel = 2
-    button.Font = Enum.Font.SourceSansBold
-    button.TextScaled = true -- Ajuste de texto
-    button.Parent = espGui
-
-    -- Bordas arredondadas no botão
-    local buttonCorner = Instance.new("UICorner")
-    buttonCorner.CornerRadius = UDim.new(0, 20)
-    buttonCorner.Parent = button
-
-    -- Lógica do botão ESP
-    button.MouseButton1Click:Connect(function()
-        espEnabled = not espEnabled
-        button.Text = espEnabled and "ESP-" or "ESP+" -- Atualiza o texto
-        for _, player in pairs(players:GetPlayers()) do
-            if player ~= localPlayer then
-                toggleESP(player, espEnabled)
-            end
-        end
-    end)
-
-    return espGui
-end
-
--- Criar botão roxo para mostrar/esconder UI-GUI
-local function createToggleUIButton(parent, espUI)
-    local toggleButton = Instance.new("TextButton")
-    toggleButton.Size = UDim2.new(0, 50, 0, 50) -- Tamanho
-    toggleButton.Position = UDim2.new(0, 10, 0, 200) -- Logo abaixo do chat
-    toggleButton.Text = "*" -- Texto do botão
-    toggleButton.BackgroundColor3 = Color3.new(0.5, 0, 0.5) -- Roxo
-    toggleButton.TextColor3 = Color3.new(1, 1, 1) -- Branco
-    toggleButton.BorderColor3 = Color3.new(1, 1, 1) -- Borda branca
-    toggleButton.BorderSizePixel = 2
-    toggleButton.Font = Enum.Font.SourceSansBold
-    toggleButton.TextScaled = true -- Ajuste de texto
-    toggleButton.Parent = parent
-
-    -- Bordas arredondadas no botão
-    local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, 20)
-    corner.Parent = toggleButton
-
-    -- Lógica do botão roxo
-    toggleButton.MouseButton1Click:Connect(function()
-        uiVisible = not uiVisible
-        espUI.Visible = uiVisible -- Mostra/esconde a UI-GUI
-    end)
-end
-
--- Criar a GUI principal
-local function createGUI()
-    local screenGui = Instance.new("ScreenGui")
-    screenGui.Name = "Main_GUI"
-    screenGui.Parent = localPlayer:WaitForChild("PlayerGui")
-
-    -- Criar UI-GUI de ESP
-    local espUI = createESPUI(screenGui)
-
-    -- Criar botão roxo para mostrar/esconder UI-GUI
-    createToggleUIButton(screenGui, espUI)
-end
-
--- Atualizar ESP para novos jogadores
-players.PlayerAdded:Connect(function(player)
-    player.CharacterAdded:Connect(function()
-        toggleESP(player, espEnabled)
-    end)
+-- Alternar Aimlock quando o botão for clicado
+TextButton.MouseButton1Click:Connect(function()
+    AimlockEnabled = not AimlockEnabled
+    
+    if AimlockEnabled then
+        TextButton.Text = "ON"
+        TextButton.BackgroundColor3 = Color3.fromRGB(50, 255, 50)
+    else
+        TextButton.Text = "OFF"
+        TextButton.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+    end
 end)
 
--- Garantir que GUI seja criada ao iniciar
-createGUI()
+-- Também funciona com toque na tela (mobile)
+TextButton.TouchTap:Connect(function()
+    AimlockEnabled = not AimlockEnabled
+    
+    if AimlockEnabled then
+        TextButton.Text = "ON"
+        TextButton.BackgroundColor3 = Color3.fromRGB(50, 255, 50)
+    else
+        TextButton.Text = "OFF"
+        TextButton.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+    end
+end)
+
+-- Conexão com o loop do jogo
+RunService.RenderStepped:Connect(Aimlock)
