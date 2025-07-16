@@ -6,7 +6,7 @@ local Camera = workspace.CurrentCamera
 
 -- Configurações iniciais
 local AimlockEnabled = false
-local TeamCheck = true
+local TeamCheck = false -- Desativado para testes
 local currentFOV = 100
 local maxFOV = 300
 local minFOV = 50
@@ -15,7 +15,7 @@ local Smoothness = 0.2
 -- Criar a GUI completa
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "AimlockUI"
-ScreenGui.Parent = game.CoreGui
+ScreenGui.Parent = game:GetService("CoreGui")
 ScreenGui.ResetOnSpawn = false
 
 -- Container principal
@@ -117,12 +117,18 @@ end
 
 -- Controle do slider
 local sliding = false
-local function StartSlide()
-    sliding = true
+
+local function StartSlide(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        sliding = true
+        UpdateSlide(input)
+    end
 end
 
-local function EndSlide()
-    sliding = false
+local function EndSlide(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        sliding = false
+    end
 end
 
 local function UpdateSlide(input)
@@ -134,25 +140,13 @@ local function UpdateSlide(input)
     end
 end
 
-SliderButton.MouseButton1Down:Connect(StartSlide)
-UserInputService.InputEnded:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        EndSlide()
-    end
-end)
-
+SliderButton.InputBegan:Connect(StartSlide)
+SliderButton.InputEnded:Connect(EndSlide)
 UserInputService.InputChanged:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseMovement then
+    if sliding and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
         UpdateSlide(input)
     end
 end)
-
--- Versão mobile para o slider
-if UserInputService.TouchEnabled then
-    SliderButton.TouchStarted:Connect(StartSlide)
-    UserInputService.TouchEnded:Connect(EndSlide)
-    UserInputService.TouchMoved:Connect(UpdateSlide)
-end
 
 -- Função para alternar o aimlock e o círculo
 local function ToggleAimlock()
@@ -162,10 +156,12 @@ local function ToggleAimlock()
         ToggleButton.Text = "ON"
         ToggleButton.BackgroundColor3 = Color3.fromRGB(50, 255, 50)
         FOVCircle.Visible = true
+        print("Aimlock ATIVADO")
     else
         ToggleButton.Text = "OFF"
         ToggleButton.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
         FOVCircle.Visible = false
+        print("Aimlock DESATIVADO")
     end
 end
 
@@ -221,16 +217,8 @@ local function Aimlock()
     end
 end
 
--- Atualizar o círculo quando a câmera se move
-local function UpdateCircle()
-    if FOVCircle.Visible then
-        FOVCircle.Size = UDim2.new(0, currentFOV*2, 0, currentFOV*2)
-        FOVCircle.Position = UDim2.new(0.5, -currentFOV, 0.5, -currentFOV)
-    end
-end
-
 -- Conexão com o loop do jogo
-RunService.RenderStepped:Connect(function()
-    Aimlock()
-    UpdateCircle()
-end)
+RunService.RenderStepped:Connect(Aimlock)
+
+-- Atualização inicial
+UpdateFOV(currentFOV)
