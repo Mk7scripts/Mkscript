@@ -1,224 +1,220 @@
+-- Acessa os serviços necessários
 local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
-local LocalPlayer = Players.LocalPlayer
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+local Player = Players.LocalPlayer
+local PlayerGui = Player.PlayerGui
 local Camera = workspace.CurrentCamera
+local LocalPlayer = Players.LocalPlayer
 
--- Configurações iniciais
-local AimlockEnabled = false
-local TeamCheck = false -- Desativado para testes
-local currentFOV = 100
-local maxFOV = 300
-local minFOV = 50
-local Smoothness = 0.2
+-- Cria a ScreenGui para conter a UI
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "CustomButtonUI"
+screenGui.Parent = PlayerGui
+screenGui.ResetOnSpawn = true
 
--- Criar a GUI completa
-local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "AimlockUI"
-ScreenGui.Parent = game:GetService("CoreGui")
-ScreenGui.ResetOnSpawn = false
+-- Cria o Frame para conter o botão
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 150, 0, 50) -- Tamanho do frame igual ao botão
+frame.Position = UDim2.new(0.5, -75, 0.5, -25) -- Centralizado na tela
+frame.BackgroundTransparency = 1 -- Fundo transparente
+frame.Parent = screenGui
 
--- Container principal
-local MainFrame = Instance.new("Frame")
-MainFrame.Name = "MainFrame"
-MainFrame.Parent = ScreenGui
-MainFrame.Size = UDim2.new(0, 120, 0, 80)
-MainFrame.Position = UDim2.new(1, -125, 0, 5)
-MainFrame.AnchorPoint = Vector2.new(1, 0)
-MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-MainFrame.BackgroundTransparency = 0.5
-MainFrame.BorderSizePixel = 0
+-- Cria o botão
+local button = Instance.new("TextButton")
+button.Name = "CoolButton"
+button.Size = UDim2.new(0, 150, 0, 50) -- Tamanho do botão
+button.Position = UDim2.new(0, 0, 0, 0) -- Alinhado ao frame
+button.BackgroundColor3 = Color3.fromRGB(0, 0, 0) -- Cor preta
+button.Text = "OFF" -- Texto inicial
+button.TextColor3 = Color3.fromRGB(255, 255, 255) -- Texto branco
+button.TextSize = 20
+button.Font = Enum.Font.GothamBold -- Fonte estilizada
+button.Parent = frame
 
--- Botão ON/OFF
-local ToggleButton = Instance.new("TextButton")
-ToggleButton.Name = "ToggleButton"
-ToggleButton.Parent = MainFrame
-ToggleButton.Size = UDim2.new(0.9, 0, 0.4, 0)
-ToggleButton.Position = UDim2.new(0.05, 0, 0.05, 0)
-ToggleButton.Text = "OFF"
-ToggleButton.TextSize = 14
-ToggleButton.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
-ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-ToggleButton.Font = Enum.Font.GothamBold
-ToggleButton.ZIndex = 10
-ToggleButton.BorderSizePixel = 0
+-- Adiciona UICorner para cantos arredondados no botão
+local uiCorner = Instance.new("UICorner")
+uiCorner.CornerRadius = UDim.new(0, 12) -- Raio dos cantos
+uiCorner.Parent = button
 
--- Barra de regulagem do FOV
-local FOVSlider = Instance.new("Frame")
-FOVSlider.Name = "FOVSlider"
-FOVSlider.Parent = MainFrame
-FOVSlider.Size = UDim2.new(0.9, 0, 0.1, 0)
-FOVSlider.Position = UDim2.new(0.05, 0, 0.55, 0)
-FOVSlider.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
-FOVSlider.BorderSizePixel = 0
+-- Adiciona UIStroke para borda roxa no botão
+local uiStroke = Instance.new("UIStroke")
+uiStroke.Color = Color3.fromRGB(128, 0, 128) -- Roxo
+uiStroke.Thickness = 2 -- Espessura da borda
+uiStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+uiStroke.Parent = button
 
-local SliderFill = Instance.new("Frame")
-SliderFill.Name = "SliderFill"
-SliderFill.Parent = FOVSlider
-SliderFill.Size = UDim2.new((currentFOV - minFOV)/(maxFOV - minFOV), 1, 1, 0)
-SliderFill.Position = UDim2.new(0, 0, 0, 0)
-SliderFill.BackgroundColor3 = Color3.fromRGB(0, 162, 255)
-SliderFill.BorderSizePixel = 0
-
-local SliderButton = Instance.new("TextButton")
-SliderButton.Name = "SliderButton"
-SliderButton.Parent = FOVSlider
-SliderButton.Size = UDim2.new(0, 10, 1.5, 0)
-SliderButton.Position = UDim2.new((currentFOV - minFOV)/(maxFOV - minFOV), -5, 0, -2)
-SliderButton.Text = ""
-SliderButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-SliderButton.BorderSizePixel = 0
-SliderButton.ZIndex = 11
-
--- Texto do valor do FOV
-local FOVText = Instance.new("TextLabel")
-FOVText.Name = "FOVText"
-FOVText.Parent = MainFrame
-FOVText.Size = UDim2.new(0.9, 0, 0.2, 0)
-FOVText.Position = UDim2.new(0.05, 0, 0.7, 0)
-FOVText.Text = "FOV: "..currentFOV
-FOVText.TextSize = 12
-FOVText.BackgroundTransparency = 1
-FOVText.TextColor3 = Color3.fromRGB(255, 255, 255)
-FOVText.Font = Enum.Font.Gotham
-FOVText.TextXAlignment = Enum.TextXAlignment.Left
-
--- Círculo de visualização do FOV
-local FOVCircle = Instance.new("Frame")
-FOVCircle.Name = "FOVCircle"
-FOVCircle.Parent = ScreenGui
-FOVCircle.Size = UDim2.new(0, currentFOV*2, 0, currentFOV*2)
-FOVCircle.Position = UDim2.new(0.5, -currentFOV, 0.5, -currentFOV)
-FOVCircle.BackgroundTransparency = 1
-FOVCircle.Visible = false
-
-local CircleOutline = Instance.new("UICorner")
-CircleOutline.CornerRadius = UDim.new(1, 0)
-CircleOutline.Parent = FOVCircle
-
-local CircleBorder = Instance.new("UIStroke")
-CircleBorder.Parent = FOVCircle
-CircleBorder.Color = Color3.fromRGB(255, 0, 0)
-CircleBorder.Thickness = 1
-CircleBorder.Transparency = 0.7
-
--- Função para atualizar o FOV
-local function UpdateFOV(newFOV)
-    currentFOV = math.clamp(newFOV, minFOV, maxFOV)
-    FOVText.Text = "FOV: "..math.floor(currentFOV)
-    SliderFill.Size = UDim2.new((currentFOV - minFOV)/(maxFOV - minFOV), 0, 1, 0)
-    SliderButton.Position = UDim2.new((currentFOV - minFOV)/(maxFOV - minFOV), -5, 0, -2)
-    
-    if FOVCircle.Visible then
-        FOVCircle.Size = UDim2.new(0, currentFOV*2, 0, currentFOV*2)
-        FOVCircle.Position = UDim2.new(0.5, -currentFOV, 0.5, -currentFOV)
-    end
-end
-
--- Controle do slider
-local sliding = false
-
-local function StartSlide(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-        sliding = true
-        UpdateSlide(input)
-    end
-end
-
-local function EndSlide(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-        sliding = false
-    end
-end
-
-local function UpdateSlide(input)
-    if sliding then
-        local relativeX = (input.Position.X - FOVSlider.AbsolutePosition.X) / FOVSlider.AbsoluteSize.X
-        relativeX = math.clamp(relativeX, 0, 1)
-        local newFOV = minFOV + (maxFOV - minFOV) * relativeX
-        UpdateFOV(newFOV)
-    end
-end
-
-SliderButton.InputBegan:Connect(StartSlide)
-SliderButton.InputEnded:Connect(EndSlide)
-UserInputService.InputChanged:Connect(function(input)
-    if sliding and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-        UpdateSlide(input)
-    end
+-- Efeito de hover (muda a transparência do fundo)
+button.MouseEnter:Connect(function()
+    button.BackgroundTransparency = 0.2
 end)
 
--- Função para alternar o aimlock e o círculo
-local function ToggleAimlock()
-    AimlockEnabled = not AimlockEnabled
-    
-    if AimlockEnabled then
-        ToggleButton.Text = "ON"
-        ToggleButton.BackgroundColor3 = Color3.fromRGB(50, 255, 50)
-        FOVCircle.Visible = true
-        print("Aimlock ATIVADO")
-    else
-        ToggleButton.Text = "OFF"
-        ToggleButton.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
-        FOVCircle.Visible = false
-        print("Aimlock DESATIVADO")
+button.MouseLeave:Connect(function()
+    button.BackgroundTransparency = 0
+end)
+
+-- Animação ao clicar
+local tweenInfo = TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+local function animateClick()
+    local tweenDown = TweenService:Create(button, tweenInfo, {Size = UDim2.new(0, 145, 0, 45)})
+    local tweenUp = TweenService:Create(button, tweenInfo, {Size = UDim2.new(0, 150, 0, 50)})
+    tweenDown:Play()
+    tweenDown.Completed:Connect(function()
+        tweenUp:Play()
+    end)
+end
+
+-- Cria o círculo FOV roxo
+local fovCircle = Instance.new("Frame")
+fovCircle.Name = "FOVCircle"
+fovCircle.Size = UDim2.new(0, 150, 0, 150) -- Tamanho reduzido do círculo (ajustável)
+fovCircle.Position = UDim2.new(0.5, -75, 0.5, -75) -- Ajustado para centralizar o círculo menor
+fovCircle.BackgroundColor3 = Color3.fromRGB(128, 0, 128) -- Roxo
+fovCircle.BackgroundTransparency = 0.7 -- Transparência para visibilidade
+fovCircle.Parent = screenGui
+
+local uiCornerCircle = Instance.new("UICorner")
+uiCornerCircle.CornerRadius = UDim.new(1, 0) -- Faz o Frame ser circular
+uiCornerCircle.Parent = fovCircle
+
+-- Inicialmente esconde o círculo
+fovCircle.Visible = false
+
+-- Variáveis para controlar o estado
+local isAimlockActive = false
+local aimlockConnection = nil
+local currentTarget = nil
+
+-- Função para encontrar o alvo dentro do círculo FOV
+local function findTarget()
+    local maxDistance = 200 -- Aumentado de 100 para 200 studs (ajustável)
+    local target = nil
+    local shortestDistance = math.huge
+
+  if not LocalPlayer.Character or not LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+        return nil -- Sai se o personagem local não estiver pronto
     end
-end
 
-ToggleButton.MouseButton1Click:Connect(ToggleAimlock)
-if UserInputService.TouchEnabled then
-    ToggleButton.TouchTap:Connect(ToggleAimlock)
-end
+   local circleCenter = Vector2.new(
+        fovCircle.AbsolutePosition.X + fovCircle.AbsoluteSize.X / 2,
+        fovCircle.AbsolutePosition.Y + fovCircle.AbsoluteSize.Y / 2
+    )
+    local circleRadius = fovCircle.AbsoluteSize.X / 2
 
--- Função para encontrar o jogador mais próximo
-local function GetClosestPlayer()
-    local closestPlayer = nil
-    local shortestDistance = currentFOV
-    
-    for _, player in ipairs(Players:GetPlayers()) do
-        if player ~= LocalPlayer and player.Character then
-            if TeamCheck and player.Team and LocalPlayer.Team and player.Team == LocalPlayer.Team then
-                continue
-            end
-            
+ for _, player in pairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
             local character = player.Character
-            local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
-            
-            if humanoidRootPart then
-                local screenPoint = Camera:WorldToScreenPoint(humanoidRootPart.Position)
-                if screenPoint.Z > 0 then
-                    local viewportSize = Camera.ViewportSize
-                    local center = Vector2.new(viewportSize.X/2, viewportSize.Y/2)
-                    local distance = (center - Vector2.new(screenPoint.X, screenPoint.Y)).Magnitude
-                    
-                    if distance < shortestDistance then
-                        closestPlayer = player
-                        shortestDistance = distance
-                    end
+            local humanoidRootPart = character.HumanoidRootPart
+            local screenPoint, onScreen = Camera:WorldToViewportPoint(humanoidRootPart.Position)
+            local distance = (Vector2.new(screenPoint.X, screenPoint.Y) - circleCenter).Magnitude
+            local playerDistance = (LocalPlayer.Character.HumanoidRootPart.Position - humanoidRootPart.Position).Magnitude
+
+ if onScreen and distance <= circleRadius and playerDistance <= maxDistance then
+                if playerDistance < shortestDistance then
+                    shortestDistance = playerDistance
+                    target = humanoidRootPart
+                    print("Target found: " .. (player.Name or "Unknown")) -- Depuração
                 end
             end
         end
     end
-    
-    return closestPlayer
+    return target
 end
 
--- Função principal do Aimlock
-local function Aimlock()
-    if not AimlockEnabled or not LocalPlayer.Character then return end
+-- Função para suavizar a transição do aimlock
+local function smoothAimlock(target)
+    if target and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+        local humanoidRootPart = LocalPlayer.Character.HumanoidRootPart
+        local tweenInfoSmooth = TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out) -- Transição suave
+        local tweenCamera = TweenService:Create(Camera, tweenInfoSmooth, {CFrame = CFrame.new(Camera.CFrame.Position, target.Position)})
+        local tweenCharacter = TweenService:Create(humanoidRootPart, tweenInfoSmooth, {CFrame = CFrame.new(humanoidRootPart.Position, target.Position)})
+        tweenCamera:Play()
+        tweenCharacter:Play()
+    end
+end
+
+-- Função para alternar o aimlock e o círculo FOV
+local function toggleAimlockAndFOV()
+    if not isAimlockActive then
+        -- Ativa o aimlock e o círculo FOV
+        isAimlockActive = true
+        button.Text = "ON"
+        fovCircle.Visible = true
+        
+   aimlockConnection = RunService.RenderStepped:Connect(function()
+            local newTarget = findTarget()
+            if newTarget and newTarget ~= currentTarget then
+                currentTarget = newTarget
+                smoothAimlock(newTarget)
+                print("Switching to new target") -- Depuração
+            elseif not newTarget and currentTarget then
+                currentTarget = nil
+                print("No target in range") -- Depuração
+            elseif currentTarget then
+                smoothAimlock(currentTarget)
+            end
+        end)
+    else
     
-    local target = GetClosestPlayer()
-    if target and target.Character then
-        local humanoidRootPart = target.Character:FindFirstChild("HumanoidRootPart")
-        if humanoidRootPart then
-            local newCFrame = CFrame.new(Camera.CFrame.Position, humanoidRootPart.Position)
-            Camera.CFrame = Camera.CFrame:Lerp(newCFrame, 1 - Smoothness)
+   isAimlockActive = false
+        button.Text = "OFF"
+        fovCircle.Visible = false
+        currentTarget = nil
+        
+   if aimlockConnection then
+            aimlockConnection:Disconnect()
+            aimlockConnection = nil
         end
     end
 end
 
--- Conexão com o loop do jogo
-RunService.RenderStepped:Connect(Aimlock)
+button.MouseButton1Click:Connect(function()
+    print("Botão clicado por " .. Player.Name .. "!")
+    animateClick()
+    toggleAimlockAndFOV()
+end)
 
--- Atualização inicial
-UpdateFOV(currentFOV)
+-- Funcionalidade de arrastar
+local dragging = false
+local dragStart = nil
+local startPosition = nil
+
+local function update(input)
+    local delta = input.Position - dragStart
+    frame.Position = UDim2.new(startPosition.X.Scale, startPosition.X.Offset + delta.X, startPosition.Y.Scale, startPosition.Y.Offset + delta.Y)
+end
+
+button.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        dragStart = input.Position
+        startPosition = frame.Position
+
+ input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+button.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseMovement then
+        if dragging then
+            update(input)
+        end
+    end
+end)
+
+-- Limita o movimento do botão para não sair da tela
+local function clampPosition()
+    local screenSize = screenGui.AbsoluteSize
+    local frameSize = frame.AbsoluteSize
+    local pos = frame.Position
+    local xOffset = math.clamp(pos.X.Offset, 0, screenSize.X - frameSize.X)
+    local yOffset = math.clamp(pos.Y.Offset, 0, screenSize.Y - frameSize.Y)
+    frame.Position = UDim2.new(0, xOffset, 0, yOffset)
+end
+
+RunService.RenderStepped:Connect(clampPosition)
