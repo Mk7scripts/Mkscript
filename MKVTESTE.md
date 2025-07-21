@@ -3,6 +3,7 @@ local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
+local Selection = game:GetService("Selection")
 local Player = Players.LocalPlayer
 local PlayerGui = Player.PlayerGui
 local Camera = workspace.CurrentCamera
@@ -68,8 +69,8 @@ end
 -- Cria o círculo FOV roxo
 local fovCircle = Instance.new("Frame")
 fovCircle.Name = "FOVCircle"
-fovCircle.Size = UDim2.new(0, 150, 0, 150) -- Tamanho reduzido do círculo (ajustável)
-fovCircle.Position = UDim2.new(0.5, -75, 0.5, -75) -- Ajustado para centralizar o círculo menor
+fovCircle.Size = UDim2.new(0, 100, 0, 100) -- Tamanho reduzido do círculo (ajustável)
+fovCircle.Position = UDim2.new(0.5, -50, 0.5, -50) -- Ajustado para centralizar o círculo menor
 fovCircle.BackgroundColor3 = Color3.fromRGB(128, 0, 128) -- Roxo
 fovCircle.BackgroundTransparency = 0.7 -- Transparência para visibilidade
 fovCircle.Parent = screenGui
@@ -85,24 +86,51 @@ fovCircle.Visible = false
 local isAimlockActive = false
 local aimlockConnection = nil
 local currentTarget = nil
+local highlights = {} -- Armazena os highlights dos outros jogadores
+
+-- Função para adicionar ou atualizar highlight
+local function updateHighlights()
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character then
+            local humanoidRootPart = player.Character:FindFirstChild("HumanoidRootPart")
+            if humanoidRootPart and not highlights[player] then
+                local highlight = Instance.new("Highlight")
+                highlight.Parent = humanoidRootPart
+                highlight.FillTransparency = 1 -- Sem preenchimento
+                highlight.OutlineColor = Color3.fromRGB(128, 0, 128) -- Borda roxa
+                highlight.OutlineTransparency = 0
+                highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+                highlights[player] = highlight
+            end
+        end
+    end
+end
+
+-- Função para remover highlights ao sair
+Players.PlayerRemoving:Connect(function(player)
+    if highlights[player] then
+        highlights[player]:Destroy()
+        highlights[player] = nil
+    end
+end)
 
 -- Função para encontrar o alvo dentro do círculo FOV
 local function findTarget()
-    local maxDistance = 200 -- Aumentado de 100 para 200 studs (ajustável)
+    local maxDistance = 300 -- Aumentado de 200 para 300 studs (ajustável)
     local target = nil
     local shortestDistance = math.huge
 
-  if not LocalPlayer.Character or not LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+    if not LocalPlayer.Character or not LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
         return nil -- Sai se o personagem local não estiver pronto
     end
 
-   local circleCenter = Vector2.new(
+    local circleCenter = Vector2.new(
         fovCircle.AbsolutePosition.X + fovCircle.AbsoluteSize.X / 2,
         fovCircle.AbsolutePosition.Y + fovCircle.AbsoluteSize.Y / 2
     )
     local circleRadius = fovCircle.AbsoluteSize.X / 2
 
- for _, player in pairs(Players:GetPlayers()) do
+    for _, player in pairs(Players:GetPlayers()) do
         if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
             local character = player.Character
             local humanoidRootPart = character.HumanoidRootPart
@@ -110,7 +138,7 @@ local function findTarget()
             local distance = (Vector2.new(screenPoint.X, screenPoint.Y) - circleCenter).Magnitude
             local playerDistance = (LocalPlayer.Character.HumanoidRootPart.Position - humanoidRootPart.Position).Magnitude
 
- if onScreen and distance <= circleRadius and playerDistance <= maxDistance then
+            if onScreen and distance <= circleRadius and playerDistance <= maxDistance then
                 if playerDistance < shortestDistance then
                     shortestDistance = playerDistance
                     target = humanoidRootPart
@@ -141,8 +169,10 @@ local function toggleAimlockAndFOV()
         isAimlockActive = true
         button.Text = "ON"
         fovCircle.Visible = true
-        
-   aimlockConnection = RunService.RenderStepped:Connect(function()
+        updateHighlights() -- Adiciona highlights ao ativar
+
+        -- Conecta o aimlock ao RenderStepped
+        aimlockConnection = RunService.RenderStepped:Connect(function()
             local newTarget = findTarget()
             if newTarget and newTarget ~= currentTarget then
                 currentTarget = newTarget
@@ -156,13 +186,20 @@ local function toggleAimlockAndFOV()
             end
         end)
     else
-    
-   isAimlockActive = false
+        -- Desativa o aimlock e o círculo FOV
+        isAimlockActive = false
         button.Text = "OFF"
         fovCircle.Visible = false
         currentTarget = nil
-        
-   if aimlockConnection then
+
+        -- Remove highlights ao desativar
+        for _, highlight in pairs(highlights) do
+            highlight:Destroy()
+        end
+        highlights = {}
+
+        -- Desconecta o aimlock
+        if aimlockConnection then
             aimlockConnection:Disconnect()
             aimlockConnection = nil
         end
@@ -191,7 +228,7 @@ button.InputBegan:Connect(function(input)
         dragStart = input.Position
         startPosition = frame.Position
 
- input.Changed:Connect(function()
+        input.Changed:Connect(function()
             if input.UserInputState == Enum.UserInputState.End then
                 dragging = false
             end
